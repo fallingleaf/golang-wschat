@@ -6,6 +6,7 @@ import (
     "encoding/json"
     "github.com/gorilla/websocket"
     "ocean/pubsub"
+    "text/template"
 )
 
 type custom interface{}
@@ -50,6 +51,12 @@ func WebSocketHandler(w http.ResponseWriter, r *http.Request) {
     
     pubsub.AddSubscriber(ws)
     
+}
+
+func ChatHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    homeTempl := template.Must(template.ParseFiles("templates/index.html"))
+	homeTempl.Execute(w, r.Host)
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {

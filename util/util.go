@@ -1,6 +1,7 @@
 package util
 
 import (
+    "time"
     "math/rand"
 )
 
@@ -10,6 +11,7 @@ const (
 )
 
 func RandomString(n int) string {
+    rand.Seed(time.Now().UnixNano())
     b := make([]byte, n)
     for i := range b {
         b[i] = letters[rand.Intn(len(letters))]

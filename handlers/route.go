@@ -11,6 +11,7 @@ func InitRoutes() *mux.Router{
     r := mux.NewRouter()
     // add routes here
     r.HandleFunc("/", HomeHandler)
+    r.HandleFunc("/chat", ChatHandler).Methods("GET")
     r.HandleFunc("/ws", WebSocketHandler).Methods("GET")
     r.HandleFunc("/api/users", UserListHandler).Methods("GET", "POST")
     r.HandleFunc("/api/users/{id:[0-9]+}", UserDetailHandler).Methods("GET", "POST", "PUT")

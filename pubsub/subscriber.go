@@ -33,22 +33,16 @@ const (
 
 // Close websocket connection and set status
 func (s *Subscriber) close() {
-    s.ws.Close()
-    event := &Event{
-                    etype: e_status, 
-                    source: s.id, 
-                    data: status_offline,
-                }
     for k := range s.topics {
         topic := manager.topics[k]
-        topic.events <- event
+        delete(topic.subscribers, s.id)
     }
-    manager.unregisters <- s
+    delete(manager.subscribers, s.id)
+    s.ws.Close()
 }
 
 // Read websocket message
 func (s *Subscriber) readMessage() {
-    defer s.close()
     s.ws.SetReadLimit(maxMessageSize)
     s.ws.SetReadDeadline(time.Now().Add(pongWait))
     s.ws.SetPongHandler(func(string) error {
@@ -64,6 +58,7 @@ func (s *Subscriber) readMessage() {
         // read Json data and push message to channel
         s.handleMessage(message)
     }
+    defer s.close()
 }
 
 // Write data to websocket with the given message and type
@@ -79,7 +74,6 @@ func (s *Subscriber) writeMessage() {
         ticker.Stop()
         s.close()
     }()
-    
     for {
         select {
         case m, ok := <- s.send:
@@ -99,6 +93,19 @@ func (s *Subscriber) writeMessage() {
 }
 
 // Handle incoming messages by type: chat, call
+/* 
+{
+    type: message/chat,
+    data: {
+        // chat data
+        topic: "hello",
+        message: "first message",
+        // or call api
+        api: "subscribe",
+        topic: "hello"
+    }
+}
+*/
 func (sub *Subscriber) handleMessage(message []byte) error {
     d := &Message{}
     decoder := json.NewDecoder(bytes.NewReader(message))
@@ -132,16 +139,18 @@ func (sub *Subscriber) sendChat(roomId, message string) {
                 source: sub.id, 
                 data: message,
             }
-            
     topic.events <- event
 }
 
-func (sub *Subscriber) callMethod(data map_data) error {
+func (sub *Subscriber) callMethod(data map_data) {
     name, _ := data["api"].(string)
-    handler, ok := methods[name]
+    handler, ok := api_methods[name]
     if !ok {
         log.Printf("Invalid method call: %v", name)
-        return nil
+        result, _ := return_error("Invalid method", 400)
+        sub.send <- result
+        return
     }
-    return handler(data)
+    result := handler(sub, data)
+    sub.send <- result
 }

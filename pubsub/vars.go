@@ -12,11 +12,6 @@ type Message struct {
     Data map_data `json:"data"`
 }
 
-type Event struct {
-    etype int
-    source string
-    data custom
-}
 
 const (
     // Available event types
@@ -38,10 +33,13 @@ const (
     // Available message types
     type_chat = 0
     type_method = 1
+    type_push = 2
 )
 
 // Register handlers as map
-var methods = map[string] func(map_data) error {
+var api_methods = map[string] func(*Subscriber, map_data) []byte {
     "auth": auth,
     "subscribe": subscribe,
+    "publish": publish,
+    "syncTopic": syncTopic,
 }
