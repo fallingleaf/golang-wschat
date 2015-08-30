@@ -181,7 +181,7 @@ $(function() {
     }
 
     if (window["WebSocket"]) {
-        conn = new WebSocket("ws://127.0.0.1:8080/ws");
+        conn = new WebSocket("ws://go.tamhoangnguyen.me/ws");
         conn.onclose = function(evt) {
             //appendLog($("<div><b>Connection closed.</b></div>"))
         }
