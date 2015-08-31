@@ -179,15 +179,22 @@ $(function() {
         
         chat.call_method(data);
     }
-
-    if (window["WebSocket"]) {
-        conn = new WebSocket("ws://go.tamhoangnguyen.me/ws");
-        conn.onclose = function(evt) {
-            //appendLog($("<div><b>Connection closed.</b></div>"))
+    
+    $(window).on('beforeunload', function(){
+        conn.close();
+    });
+    
+    try {
+        if (window["WebSocket"]) {
+            conn = new WebSocket("ws://"+ window.location.host +"/ws");
+            conn.onclose = function(evt) {
+                console.log("socket connection closed");
+            }
+            conn.onmessage = handleMessage;
+            conn.onopen = sync;
         }
-        conn.onmessage = handleMessage;
-        conn.onopen = sync;
-    } else {
-        //appendLog($("<div><b>Your browser does not support WebSockets.</b></div>"))
+    } catch(e){
+        console.log("socket connect error");
     }
+    
 });
